@@ -17,6 +17,5 @@ RUN CGO_ENABLED=0 GOARCH=arm go build -a -o app ./cmd/main.go
 FROM scratch
 
 COPY --from=builder /app/app /app
-COPY --from=builder /app/prod.json /prod.json
 
 CMD ["/app"]
