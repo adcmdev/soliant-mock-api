@@ -1,0 +1,32 @@
+services:
+  redis:
+    image: redis:7-alpine
+    restart: always
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    networks:
+      - soliant-mock-api
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - GH_TOKEN=${GH_TOKEN}
+        - --no-cache
+    restart: always
+    ports:
+      - "${PORT}:${PORT}"
+    depends_on:
+      - db
+      - redis
+    networks:
+      - soliant-mock-api
+
+networks:
+  soliant-mock-api:
+    driver: bridge
+
+volumes:
+  redis-data:

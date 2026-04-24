@@ -1,0 +1,7 @@
+.idea/
+tmp/
+.DS_Store
+build/
+dev.json
+prod.json
+.git/
