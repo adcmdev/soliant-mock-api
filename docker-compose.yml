@@ -9,12 +9,7 @@ services:
       - soliant-mock-api
 
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        - GH_TOKEN=${GH_TOKEN}
-        - --no-cache
+    image: ${IMAGE_NAME}:latest
     restart: always
     ports:
       - "${PORT}:${PORT}"
