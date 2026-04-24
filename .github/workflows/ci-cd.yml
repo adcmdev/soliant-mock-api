@@ -23,7 +23,7 @@ jobs:
           username: "${{ secrets.SERVER_USER }}"
           key: "${{ secrets.SSH_PRIVATE_KEY }}"
           script: |
-            cd /home/ac/Desktop/soliant-mock-api/soliant-mock-api
+            cd /home/ac/soliant-mock-api/soliant-mock-api
             export PATH=$PATH:/usr/libexec/docker/cli-plugins
             export GH_TOKEN="${{ secrets.GH_TOKEN }}"
             export PORT="3030"
