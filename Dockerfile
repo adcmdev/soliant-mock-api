@@ -1,21 +1,23 @@
-# Builder
 FROM golang:1.22 AS builder
 
-ARG GH_PACKAGES_TOKEN
-ENV GOPRIVATE=github.com/adcmdev/*
-ENV GONOPROXY=github.com/adcmdev/*
-ENV GONOSUMDB=github.com/adcmdev/*
-
-RUN git config --global url."https://${GH_PACKAGES_TOKEN}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
+RUN apk add --no-cache ca-certificates tzdata
 
 WORKDIR /app
+
+COPY go.mod go.sum ./
+RUN go mod download
+
 COPY . .
 
-RUN CGO_ENABLED=0 GOARCH=arm go build -a -o app ./cmd/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app ./cmd/main.go
 
-# App
 FROM scratch
 
-COPY --from=builder /app/app /app
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 
-CMD ["/app"]
+ENV TZ=America/Bogota
+
+COPY --from=builder /app/app /app/app
+
+CMD ["/app/app"]
