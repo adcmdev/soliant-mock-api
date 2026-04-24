@@ -1,6 +1,6 @@
 module soliant-mock-api
 
-go 1.22
+go 1.25
 
 require (
 	github.com/MadAppGang/httplog v1.3.0
