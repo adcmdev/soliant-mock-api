@@ -26,7 +26,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GH_TOKEN }}
+          password: ${{ secrets.GH_PACKAGES_TOKEN }}
 
       - name: Set deployment environment
         run: |
@@ -43,11 +43,11 @@ jobs:
 
       - name: Build and push Docker image to GHCR
         run: |
-          export GH_TOKEN="${{ secrets.GH_TOKEN }}"
+          export GH_PACKAGES_TOKEN="${{ secrets.GH_PACKAGES_TOKEN }}"
 
           docker build \
-            --secret id=GH_TOKEN,env=GH_TOKEN \
-            --build-arg GH_TOKEN="$GH_TOKEN" \
+            --secret id=GH_PACKAGES_TOKEN,env=GH_PACKAGES_TOKEN \
+            --build-arg GH_PACKAGES_TOKEN="$GH_PACKAGES_TOKEN" \
             --build-arg ENV="${{ env.ENV }}" \
             -t ${{ env.IMAGE_NAME }}:latest \
             --push -f Dockerfile .
@@ -64,19 +64,19 @@ jobs:
             rm -f ${{ env.APP_COMPOSE_FILE }}
 
             curl -fsSL \
-              -H "Authorization: token ${{ secrets.GH_TOKEN }}" \
+              -H "Authorization: token ${{ secrets.GH_PACKAGES_TOKEN }}" \
               -H "Accept: application/vnd.github.v3.raw" \
               "https://api.github.com/repos/${{ github.repository }}/contents/${{ env.APP_COMPOSE_FILE }}?ref=${{ github.ref_name }}" \
               -o ${{ env.PROJECT_PATH }}/${{ env.APP_COMPOSE_FILE }}
 
-            docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GH_TOKEN }}
+            docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GH_PACKAGES_TOKEN }}
 
             export PATH=$PATH:"/usr/local/bin/":/usr/libexec/docker/cli-plugins
 
             export IMAGE_NAME="${{ env.IMAGE_NAME }}"
             export ENV="${{ env.ENV }}"
             export PORT="${{ env.PORT }}"
-            export GH_TOKEN="${{ secrets.GH_TOKEN }}"
+            export GH_PACKAGES_TOKEN="${{ secrets.GH_PACKAGES_TOKEN }}"
 
             echo "🚀 Deploying application service..."
             docker-compose -f ${{ env.APP_COMPOSE_FILE }} pull
