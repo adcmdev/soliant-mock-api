@@ -15,6 +15,7 @@ services:
       - "${PORT}:${PORT}"
     environment:
       REDIS_HOST: "redis:6379"
+      ENV: "PROD"
     depends_on:
       - redis
     networks:
