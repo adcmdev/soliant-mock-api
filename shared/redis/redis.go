@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"os"
 	"soliant-mock-api/shared/logger"
 
 	goredis "github.com/innovafour/redis"
@@ -12,8 +13,14 @@ func NewClient(prefix string) (goredis.CacheRepository, error) {
 	var redisClient goredis.CacheRepository
 	var err error
 
+	host := "localhost:6379"
+
+	if os.Getenv("REDIS_HOST") != "" {
+		host = os.Getenv("REDIS_HOST")
+	}
+
 	createRedisDto := goredis.CreateNewRedisDTO{
-		Host:   "localhost:6379",
+		Host:   host,
 		Prefix: prefix,
 	}
 

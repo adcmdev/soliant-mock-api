@@ -2,7 +2,7 @@ services:
   redis:
     image: redis:7-alpine
     restart: always
-    command: ["redis-server", "--appendonly", "yes"]
+    command: [ "redis-server", "--appendonly", "yes" ]
     volumes:
       - redis-data:/data
     networks:
@@ -18,8 +18,9 @@ services:
     restart: always
     ports:
       - "${PORT}:${PORT}"
+    environment:
+      REDIS_HOST: "redis:6379"
     depends_on:
-      - db
       - redis
     networks:
       - soliant-mock-api
