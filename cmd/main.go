@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"os"
 	"soliant-mock-api/modules/auth"
+	"sort"
+	"strings"
 
 	"soliant-mock-api/modules/availability"
 	"soliant-mock-api/modules/home"
@@ -112,6 +114,69 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
+
+	e.GET("/endpoints", func(c echo.Context) error {
+		host := c.Request().Host
+		scheme := "http"
+		if c.Request().TLS != nil || c.Request().Header.Get("X-Forwarded-Proto") == "https" {
+			scheme = "https"
+		}
+		baseURL := scheme + "://" + host
+
+		type endpoint struct {
+			Method  string `json:"method"`
+			Path    string `json:"path"`
+			Curl    string `json:"curl"`
+			Example string `json:"example,omitempty"`
+		}
+
+		routes := e.Routes()
+		out := make([]endpoint, 0, len(routes))
+		for _, r := range routes {
+			// Skip Echo's auto-registered HEAD/CONNECT etc. on root.
+			if r.Path == "" {
+				continue
+			}
+			// Replace :id-style params with a placeholder for the example URL.
+			examplePath := r.Path
+			for _, seg := range strings.Split(r.Path, "/") {
+				if strings.HasPrefix(seg, ":") {
+					examplePath = strings.Replace(examplePath, seg, "<"+strings.TrimPrefix(seg, ":")+">", 1)
+				}
+			}
+			url := baseURL + examplePath
+
+			var curl string
+			switch r.Method {
+			case http.MethodGet, http.MethodDelete:
+				curl = "curl -X " + r.Method + " '" + url + "'"
+			case http.MethodPost, http.MethodPatch, http.MethodPut:
+				curl = "curl -X " + r.Method + " '" + url + "' \\\n" +
+					"  -H 'Content-Type: application/json' \\\n" +
+					"  -d '{}'"
+			default:
+				curl = "curl -X " + r.Method + " '" + url + "'"
+			}
+
+			out = append(out, endpoint{
+				Method: r.Method,
+				Path:   r.Path,
+				Curl:   curl,
+			})
+		}
+
+		sort.Slice(out, func(i, j int) bool {
+			if out[i].Path == out[j].Path {
+				return out[i].Method < out[j].Method
+			}
+			return out[i].Path < out[j].Path
+		})
+
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"count":     len(out),
+			"endpoints": out,
+		})
+	})
 
 	logger.Fatal(e.Start(":" + port))
 }
