@@ -116,17 +116,9 @@ func main() {
 	}
 
 	e.GET("/endpoints", func(c echo.Context) error {
-		host := c.Request().Host
-		scheme := "http"
-		if c.Request().TLS != nil || c.Request().Header.Get("X-Forwarded-Proto") == "https" {
-			scheme = "https"
-		}
-		baseURL := scheme + "://" + host
-
 		type endpoint struct {
 			Method  string `json:"method"`
 			Path    string `json:"path"`
-			Curl    string `json:"curl"`
 			Example string `json:"example,omitempty"`
 		}
 
@@ -144,24 +136,10 @@ func main() {
 					examplePath = strings.Replace(examplePath, seg, "<"+strings.TrimPrefix(seg, ":")+">", 1)
 				}
 			}
-			url := baseURL + examplePath
-
-			var curl string
-			switch r.Method {
-			case http.MethodGet, http.MethodDelete:
-				curl = "curl -X " + r.Method + " '" + url + "'"
-			case http.MethodPost, http.MethodPatch, http.MethodPut:
-				curl = "curl -X " + r.Method + " '" + url + "' \\\n" +
-					"  -H 'Content-Type: application/json' \\\n" +
-					"  -d '{}'"
-			default:
-				curl = "curl -X " + r.Method + " '" + url + "'"
-			}
 
 			out = append(out, endpoint{
 				Method: r.Method,
 				Path:   r.Path,
-				Curl:   curl,
 			})
 		}
 
@@ -173,7 +151,6 @@ func main() {
 		})
 
 		return c.JSON(http.StatusOK, map[string]interface{}{
-			"count":     len(out),
 			"endpoints": out,
 		})
 	})
